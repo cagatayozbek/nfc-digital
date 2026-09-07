@@ -40,6 +40,7 @@ function downloadVCard(profile: ProfileType) {
 }
 
 export function BusinessProfile({ profile }: { profile: ProfileType }) {
+  const slug = profile.slug;
   return (
     <div
       className="min-h-screen w-full flex flex-col items-center py-16 px-6 font-sans selection:bg-black selection:text-white"
@@ -83,6 +84,7 @@ export function BusinessProfile({ profile }: { profile: ProfileType }) {
             <LinkButton
               key={index}
               link={link}
+              slug={slug}
               primaryColor={profile.primary_color}
               textColor={profile.text_color}
             />

@@ -107,3 +107,26 @@ create policy "Logos public update"
 create policy "Logos public delete"
   on storage.objects for delete
   using ( bucket_id = 'logos' );
+
+-- ================================================================
+-- CLICK EVENTS — Tıklanma Takibi
+-- Supabase Dashboard > SQL Editor'e yapıştır ve çalıştır
+-- ================================================================
+
+create table if not exists click_events (
+  id         uuid primary key default gen_random_uuid(),
+  slug       text not null,
+  link_type  text not null,
+  link_label text,
+  clicked_at timestamptz default now()
+);
+
+alter table click_events enable row level security;
+
+-- Herkese insert (profil ziyaretçileri tıklayabilir)
+create policy "Click events public insert"
+  on click_events for insert with check (true);
+
+-- Herkese select (admin analytics için)
+create policy "Click events public select"
+  on click_events for select using (true);
