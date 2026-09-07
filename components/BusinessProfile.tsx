@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { BusinessProfile as ProfileType } from "../data/businesses";
 import { LinkButton } from "./LinkButton";
