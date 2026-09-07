@@ -56,14 +56,14 @@ export function AdminClient({ businesses }: { businesses: Business[] }) {
           {businesses.map((b) => (
             <li key={b.slug} className="border border-black">
               {/* Main row */}
-              <div className="flex items-center justify-between p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-4">
                 <div>
                   <p className="font-medium text-sm uppercase tracking-wider">
                     {b.name}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">/{b.slug}</p>
                 </div>
-                <div className="flex gap-2 flex-wrap justify-end">
+                <div className="flex gap-2 flex-wrap justify-start sm:justify-end">
                   <Link
                     href={`/${b.slug}`}
                     target="_blank"

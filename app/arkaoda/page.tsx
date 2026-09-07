@@ -10,13 +10,13 @@ export default async function AdminPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-white text-black font-sans">
       <div className="max-w-2xl w-full p-8 border border-black">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <h1 className="text-2xl font-bold uppercase tracking-widest">
             Yönetim Paneli
           </h1>
           <Link
             href="/add"
-            className="text-sm border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors uppercase tracking-widest"
+            className="text-sm border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors uppercase tracking-widest text-center"
           >
             + Yeni Ekle
           </Link>

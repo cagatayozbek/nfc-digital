@@ -281,13 +281,16 @@ export default function AddBusinessPage() {
 
               <div className="space-y-4">
                 {links.map((link, index) => (
-                  <div key={index} className="flex gap-2 items-start">
+                  <div
+                    key={index}
+                    className="flex flex-col sm:flex-row gap-2 items-start border sm:border-none border-gray-200 p-3 sm:p-0"
+                  >
                     <select
                       value={link.type}
                       onChange={(e) =>
                         updateLink(index, "type", e.target.value as LinkType)
                       }
-                      className="border border-black p-2 bg-transparent text-sm w-1/4"
+                      className="border border-black p-2 bg-transparent text-sm w-full sm:w-1/4"
                     >
                       <option value="website">Website</option>
                       <option value="instagram">Instagram</option>
@@ -306,9 +309,9 @@ export default function AddBusinessPage() {
                       onChange={(e) =>
                         updateLink(index, "label", e.target.value)
                       }
-                      className="border border-black p-2 bg-transparent text-sm w-1/4"
+                      className="border border-black p-2 bg-transparent text-sm w-full sm:w-1/4"
                     />
-                    <div className="flex flex-col w-2/4">
+                    <div className="flex flex-col w-full sm:w-2/4">
                       <input
                         required
                         type="text"
@@ -317,7 +320,7 @@ export default function AddBusinessPage() {
                         onChange={(e) =>
                           updateLink(index, "url", e.target.value)
                         }
-                        className={`border p-2 bg-transparent text-sm ${urlErrors[index] ? "border-red-400" : "border-black"}`}
+                        className={`border p-2 bg-transparent text-sm w-full ${urlErrors[index] ? "border-red-400" : "border-black"}`}
                       />
                       {urlErrors[index] && (
                         <span className="text-red-500 text-xs mt-1">
@@ -328,9 +331,9 @@ export default function AddBusinessPage() {
                     <button
                       type="button"
                       onClick={() => removeLink(index)}
-                      className="border border-black p-2 text-sm hover:bg-black hover:text-white transition-colors"
+                      className="border border-red-200 sm:border-black text-red-500 sm:text-black p-2 text-sm hover:bg-red-50 sm:hover:bg-black sm:hover:text-white transition-colors w-full sm:w-auto mt-2 sm:mt-0"
                     >
-                      ✕
+                      Sil
                     </button>
                   </div>
                 ))}
