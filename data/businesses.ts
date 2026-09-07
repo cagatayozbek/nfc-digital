@@ -102,4 +102,28 @@ export const businesses: Record<string, BusinessProfile> = {
       },
     ],
   },
+
+
+  "iot": {
+      "name": "iot aş",
+      "description": "iot yazılım aş",
+      "logo": "/logos/iot-logo.svg",
+      "theme": {
+          "primary": "#000000",
+          "background": "#ffffff",
+          "text": "#000000"
+      },
+      "links": [
+          {
+              "type": "website",
+              "label": "web siteşi",
+              "url": "https://www.emnify.com/hubfs/Title-iot-connectivity.webp"
+          },
+          {
+              "type": "instagram",
+              "label": "insta",
+              "url": "https://www.emnify.com/hubfs/Title-iot-connectivity.webp"
+          }
+      ]
+  },
 };
