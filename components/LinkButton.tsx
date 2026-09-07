@@ -1,28 +1,27 @@
-import React from "react";
-import { BusinessLink } from "../data/businesses";
-import { SocialIcon } from "./SocialIcon";
+import React from 'react';
+import { BusinessLink } from '../data/businesses';
+import { SocialIcon } from './SocialIcon';
 
 interface LinkButtonProps {
   link: BusinessLink;
-  primaryColor: string;
+  themeType?: 'dark' | 'light';
 }
 
-export function LinkButton({ link, primaryColor }: LinkButtonProps) {
+export function LinkButton({ link, themeType = 'light' }: LinkButtonProps) {
   return (
     <a
       href={link.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center w-full p-4 mb-4 transition-transform hover:scale-105 active:scale-95 shadow-md rounded-xl bg-white"
-      style={{ borderLeft: `6px solid ${primaryColor}` }}
+      className="group flex items-center justify-between w-full p-4 mb-3 border border-black bg-transparent hover:bg-black hover:text-white transition-colors duration-200"
     >
-      <div className="flex items-center justify-center w-10 h-10 rounded-full mr-4 bg-gray-100">
-        <SocialIcon type={link.type} />
+      <div className="flex items-center gap-4">
+        <SocialIcon type={link.type} className="w-5 h-5 transition-colors duration-200" />
+        <span className="font-medium text-sm uppercase tracking-wider">{link.label}</span>
       </div>
-      <span className="font-semibold text-lg flex-1 text-gray-800">
-        {link.label}
+      <span className="text-black group-hover:text-white transition-colors duration-200 font-light">
+        ↗
       </span>
-      <span className="text-gray-400">→</span>
     </a>
   );
 }
