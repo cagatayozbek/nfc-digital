@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { businesses } from "../../data/businesses";
+import { getBusinessBySlug, getBusinesses } from "../../lib/businesses";
 import { BusinessProfile } from "../../components/BusinessProfile";
 import { Metadata } from "next";
 
@@ -7,23 +7,29 @@ type Props = {
   params: { slug: string };
 };
 
-export function generateMetadata({ params }: Props): Metadata {
-  const profile = businesses[params.slug];
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const profile = await getBusinessBySlug(params.slug);
 
   if (!profile) {
-    return {
-      title: "Profil Bulunamadı",
-    };
+    return { title: "Profil Bulunamadı" };
   }
 
   return {
     title: `${profile.name} | NFC Digital`,
     description: profile.description,
+    openGraph: {
+      title: `${profile.name} | NFC Digital`,
+      description: profile.description,
+      images: profile.logo_url ? [{ url: profile.logo_url }] : [],
+      type: "profile",
+    },
   };
 }
 
-export default function ProfilePage({ params }: Props) {
-  const profile = businesses[params.slug];
+export default async function ProfilePage({ params }: Props) {
+  const profile = await getBusinessBySlug(params.slug);
 
   if (!profile) {
     notFound();
