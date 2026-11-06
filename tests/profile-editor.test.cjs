@@ -251,3 +251,34 @@ test("add action saves contact visibility with photo settings and defaults to vi
   }
   assert.deepEqual(redirects, ['/fixture', '/fixture', '/fixture']);
 });
+
+test("edit action toggles contact visibility and preserves it when omitted", async () => {
+  let existing = { design: { show_contact: true, cover_url: 'https://example.com/cover.png', photo_zoom: 1.8 } };
+  const compiled = ts.transpileModule(fs.readFileSync(require.resolve('../app/[slug]/edit/actions.ts'), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+  });
+  const exports = {};
+  const mockRequire = (name) => {
+    if (name === '../../../lib/businesses') return {
+      getBusinessBySlug: async () => existing,
+      updateBusiness: async (slug, profile) => {
+        assert.equal(slug, 'fixture');
+        existing = profile;
+      },
+    };
+    if (name === '../../../lib/profile-form') return require('../lib/profile-form.ts');
+    if (name === '../../../lib/profile-photo') return require('../lib/profile-photo.ts');
+    if (name === 'next/navigation') return { redirect: () => {} };
+    throw new Error(`Unexpected dependency: ${name}`);
+  };
+  new Function('require', 'exports', compiled.outputText)(mockRequire, exports);
+  for (const value of ['false', undefined, 'true', undefined, 'false']) {
+    const previous = existing.design.show_contact;
+    const data = form();
+    if (value !== undefined) data.set('show_contact', value);
+    await exports.editBusiness('fixture', data);
+    assert.equal(existing.design.show_contact, value === undefined ? previous : value !== 'false');
+    assert.equal(existing.design.cover_url, 'https://example.com/cover.png');
+    assert.equal(existing.design.photo_zoom, 1.8);
+  }
+});

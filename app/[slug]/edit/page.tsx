@@ -52,6 +52,7 @@ export default function EditBusinessPage() {
   const [primary, setPrimary] = useState("#000000");
   const [background, setBackground] = useState("#ffffff");
   const [text, setText] = useState("#000000");
+  const [showContact, setShowContact] = useState(true);
   const [links, setLinks] = useState<
     { type: LinkType; label: string; url: string }[]
   >([]);
@@ -74,6 +75,7 @@ export default function EditBusinessPage() {
         setLinks(data.links);
         setLogoPreviewUrl(data.logo_url);
         setPhoto({ ...DEFAULT_PHOTO, ...data.design });
+        setShowContact(data.design?.show_contact !== false);
       })
       .catch(() => setError("Profil yüklenemedi."))
       .finally(() => setFetching(false));
@@ -133,6 +135,7 @@ export default function EditBusinessPage() {
       formData.append("text", text);
       formData.append("links", JSON.stringify(links));
       formData.append("photo", JSON.stringify(photo));
+      formData.append("show_contact", String(showContact));
       if (logoFile) formData.append("logo", logoFile);
       if (coverFile) formData.append("cover", coverFile);
       if (footerFile) formData.append("footer", footerFile);
@@ -163,6 +166,7 @@ export default function EditBusinessPage() {
           description={description}
           logo_url={logoPreviewUrl}
           photo={photo}
+          show_contact={showContact}
           cover_url={coverUrl}
           footer_image_url={footerUrl}
           primary_color={primary}
@@ -414,6 +418,23 @@ export default function EditBusinessPage() {
                   </p>
                 )}
               </div>
+            </div>
+
+            <div className="border border-black p-4">
+              <label className="flex items-center justify-between gap-4 cursor-pointer">
+                <span className="text-sm font-medium">Rehbere Kaydet</span>
+                <input
+                  type="checkbox"
+                  role="switch"
+                  checked={showContact}
+                  onChange={(e) => setShowContact(e.target.checked)}
+                  aria-describedby="show-contact-description"
+                  className="h-5 w-5 accent-black"
+                />
+              </label>
+              <p id="show-contact-description" className="mt-2 text-xs text-gray-500">
+                Profilde Rehbere Kaydet düğmesini göster.
+              </p>
             </div>
 
             <button

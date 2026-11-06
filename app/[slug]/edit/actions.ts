@@ -22,6 +22,8 @@ export async function editBusiness(slug: string, formData: FormData) {
   const existing = await getBusinessBySlug(slug);
   if (!existing) throw new Error("Profil bulunamadı.");
   const design = { ...existing.design, ...photo };
+  if (formData.has("show_contact"))
+    design.show_contact = formData.get("show_contact") !== "false";
   if (formData.get("removeCover") === "true") design.cover_url = "";
   if (formData.get("removeFooter") === "true") design.footer_image_url = "";
   await updateBusiness(
