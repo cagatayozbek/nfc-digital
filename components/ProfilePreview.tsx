@@ -10,6 +10,7 @@ import { SocialIcon } from "./SocialIcon";
 
 interface ProfilePreviewProps {
   photo?: PhotoDesign;
+  show_contact?: boolean;
   cover_url?: string;
   footer_image_url?: string;
   name: string;
@@ -23,6 +24,7 @@ interface ProfilePreviewProps {
 
 export function ProfilePreview({
   photo = DEFAULT_PHOTO,
+  show_contact = true,
   cover_url,
   footer_image_url,
   name,
@@ -128,16 +130,18 @@ export function ProfilePreview({
       </div>
 
       {/* Save contact */}
-      <div
-        className="w-full py-3 text-center text-xs font-medium uppercase tracking-widest border"
-        style={{
-          backgroundColor: primary_color,
-          color: background_color,
-          borderColor: primary_color,
-        }}
-      >
-        Rehbere Kaydet
-      </div>
+      {show_contact && (
+        <div
+          className="w-full py-3 text-center text-xs font-medium uppercase tracking-widest border"
+          style={{
+            backgroundColor: primary_color,
+            color: background_color,
+            borderColor: primary_color,
+          }}
+        >
+          Rehbere Kaydet
+        </div>
+      )}
 
       {footer_image_url && (
         <img

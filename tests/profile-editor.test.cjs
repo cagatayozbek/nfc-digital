@@ -220,3 +220,34 @@ test("create and edit persist separate banner URLs and preserve photo settings",
   assert.equal(writes[1].design.footer_image_url, created.design.footer_image_url);
   assert.equal(writes[1].design.photo_zoom, 1.7);
 });
+
+test("add action saves contact visibility with photo settings and defaults to visible", async () => {
+  const writes = [];
+  const redirects = [];
+  const compiled = ts.transpileModule(fs.readFileSync(require.resolve('../app/add/actions.ts'), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+  });
+  const exports = {};
+  const mockRequire = (name) => {
+    if (name === '../../lib/businesses') return {
+      slugExists: async () => false,
+      addBusiness: async (profile) => { writes.push(profile); },
+    };
+    if (name === '../../lib/profile-form') return require('../lib/profile-form.ts');
+    if (name === '../../lib/profile-photo') return require('../lib/profile-photo.ts');
+    if (name === 'next/navigation') return { redirect: (url) => { redirects.push(url); } };
+    throw new Error(`Unexpected dependency: ${name}`);
+  };
+  new Function('require', 'exports', compiled.outputText)(mockRequire, exports);
+  const { DEFAULT_PHOTO } = require('../lib/profile-photo.ts');
+  for (const value of ['false', 'true', undefined]) {
+    const data = form();
+    data.set('slug', 'fixture');
+    data.set('photo', JSON.stringify({ ...DEFAULT_PHOTO, photo_zoom: 1.8 }));
+    if (value !== undefined) data.set('show_contact', value);
+    await exports.addBusiness(data);
+    assert.equal(writes.at(-1).design.show_contact, value !== 'false');
+    assert.equal(writes.at(-1).design.photo_zoom, 1.8);
+  }
+  assert.deepEqual(redirects, ['/fixture', '/fixture', '/fixture']);
+});

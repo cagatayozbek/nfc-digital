@@ -1,7 +1,7 @@
 "use server";
 
 import { addBusiness as dbAddBusiness, slugExists } from "../../lib/businesses";
-import { BusinessLink, LinkType } from "../../data/businesses";
+import { BusinessLink } from "../../data/businesses";
 import { readProfileImage } from "../../lib/profile-form";
 import { readPhotoForm } from "../../lib/profile-photo";
 import { redirect } from "next/navigation";
@@ -37,7 +37,10 @@ export async function addBusiness(formData: FormData) {
       background_color,
       text_color,
       links,
-      design: readPhotoForm(formData),
+      design: {
+        ...readPhotoForm(formData),
+        show_contact: formData.get("show_contact") !== "false",
+      },
     },
     logoFile,
     coverFile,
