@@ -76,13 +76,6 @@ export function BusinessProfile({
         fontFamily: fonts[design.font],
       }}
     >
-      {design.cover_url && (
-        <img
-          src={design.cover_url}
-          alt="Kapak görseli"
-          className="w-full h-40 object-cover"
-        />
-      )}
       <div
         className="mx-auto w-full max-w-sm px-6 flex flex-col"
         style={{
@@ -92,40 +85,49 @@ export function BusinessProfile({
           textAlign: design.alignment,
         }}
       >
-        <div
-          className="shrink-0 overflow-hidden flex items-center justify-center"
-          style={{
-            width: design.photo_size,
-            height: design.photo_size,
-            marginBottom: gap,
-            borderRadius:
-              design.photo_shape === "circle"
-                ? "50%"
-                : design.photo_shape === "rounded"
-                  ? 20
-                  : 0,
-          }}
-        >
-          {profile.logo_url ? (
-            <img
-              src={profile.logo_url}
-              alt={`${profile.name || "Profil"} görseli`}
-              className="w-full h-full"
-              style={{
-                objectFit: design.photo_fit,
-                objectPosition: `${design.photo_x}% ${design.photo_y}%`,
-                transform: `scale(${design.photo_zoom})`,
-                transformOrigin: `${design.photo_x}% ${design.photo_y}%`,
-              }}
-            />
-          ) : (
-            <UserRound
-              size={design.photo_size / 2}
-              strokeWidth={1}
-              aria-label="Profil görseli yok"
-            />
-          )}
-        </div>
+        {design.cover_url ? (
+          <img
+            src={design.cover_url}
+            alt="Üst banner"
+            className="w-full h-auto shrink-0"
+            style={{ marginBottom: gap }}
+          />
+        ) : (
+          <div
+            className="shrink-0 overflow-hidden flex items-center justify-center"
+            style={{
+              width: design.photo_size,
+              height: design.photo_size,
+              marginBottom: gap,
+              borderRadius:
+                design.photo_shape === "circle"
+                  ? "50%"
+                  : design.photo_shape === "rounded"
+                    ? 20
+                    : 0,
+            }}
+          >
+            {profile.logo_url ? (
+              <img
+                src={profile.logo_url}
+                alt={`${profile.name || "Profil"} görseli`}
+                className="w-full h-full"
+                style={{
+                  objectFit: design.photo_fit,
+                  objectPosition: `${design.photo_x}% ${design.photo_y}%`,
+                  transform: `scale(${design.photo_zoom})`,
+                  transformOrigin: `${design.photo_x}% ${design.photo_y}%`,
+                }}
+              />
+            ) : (
+              <UserRound
+                size={design.photo_size / 2}
+                strokeWidth={1}
+                aria-label="Profil görseli yok"
+              />
+            )}
+          </div>
+        )}
         <h1
           className="text-2xl font-bold w-full break-words [overflow-wrap:anywhere]"
           style={{ marginBottom: 12 }}
@@ -180,6 +182,14 @@ export function BusinessProfile({
           >
             {design.contact_label}
           </button>
+        )}
+        {design.footer_image_url && (
+          <img
+            src={design.footer_image_url}
+            alt="Alt görsel"
+            className="w-full h-auto shrink-0"
+            style={{ marginTop: gap }}
+          />
         )}
         <p className="text-xs tracking-widest mt-12">NFC DIGITAL</p>
       </div>

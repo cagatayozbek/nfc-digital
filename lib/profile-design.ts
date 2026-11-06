@@ -3,6 +3,7 @@ import { BusinessLink, LinkType, ProfileDesign } from "../data/businesses";
 export const DEFAULT_DESIGN: ProfileDesign = {
   template: "business",
   cover_url: "",
+  footer_image_url: "",
   photo_size: 144,
   photo_shape: "square",
   photo_fit: "contain",

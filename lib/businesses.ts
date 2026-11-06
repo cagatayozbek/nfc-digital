@@ -44,6 +44,7 @@ export async function addBusiness(
   profile: Omit<BusinessProfile, "id" | "created_at">,
   logoFile?: File | null,
   coverFile?: File | null,
+  footerFile?: File | null,
 ): Promise<BusinessProfile> {
   const supabase = await getSupabase();
   let logo_url = profile.logo_url;
@@ -59,6 +60,14 @@ export async function addBusiness(
       profile.slug,
       coverFile,
       "cover",
+    );
+
+  if (footerFile && footerFile.size > 0)
+    design.footer_image_url = await uploadImage(
+      supabase,
+      profile.slug,
+      footerFile,
+      "footer",
     );
 
   const { data, error } = await supabase
@@ -78,6 +87,7 @@ export async function updateBusiness(
   updates: Partial<Omit<BusinessProfile, "id" | "slug" | "created_at">>,
   logoFile?: File | null,
   coverFile?: File | null,
+  footerFile?: File | null,
 ): Promise<BusinessProfile> {
   const supabase = await getSupabase();
   let logo_url = updates.logo_url;
@@ -90,11 +100,19 @@ export async function updateBusiness(
   if (coverFile && coverFile.size > 0)
     design.cover_url = await uploadImage(supabase, slug, coverFile, "cover");
 
+  if (footerFile && footerFile.size > 0)
+    design.footer_image_url = await uploadImage(
+      supabase,
+      slug,
+      footerFile,
+      "footer",
+    );
+
   const { data, error } = await supabase
     .from("businesses")
     .update({
       ...updates,
-      ...(updates.design || coverFile ? { design } : {}),
+      ...(updates.design || coverFile || footerFile ? { design } : {}),
       ...(logo_url ? { logo_url } : {}),
     })
     .eq("slug", slug)

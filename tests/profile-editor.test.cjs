@@ -154,3 +154,69 @@ test("filled button text remains readable on light and dark colors", () => {
   for (const color of ["#a52831", "#ffe0e0", "#354f46", "#ffffff", "#000000"])
     assert.ok(contrastRatio(color, readableText(color)) >= 4.5);
 });
+
+test("photo-only form preserves crop and rejects invalid dimensions", () => {
+  const { readPhotoForm, DEFAULT_PHOTO } = require('../lib/profile-photo.ts');
+  const data = new FormData();
+  assert.equal(readPhotoForm(data), undefined);
+  const photo = { ...DEFAULT_PHOTO, photo_zoom: 1.8, photo_shape: 'circle', photo_x: 25 };
+  data.set('photo', JSON.stringify(photo));
+  assert.deepEqual(readPhotoForm(data), photo);
+  data.set('photo', JSON.stringify({ ...photo, photo_size: 999 }));
+  assert.throws(() => readPhotoForm(data), /ölçüleri/);
+});
+
+test("both banner uploads are validated independently", () => {
+  const { readProfileImage } = require('../lib/profile-form.ts');
+  const data = new FormData();
+  data.set('cover', new File(['top'], 'top.png', { type: 'image/png' }));
+  data.set('footer', new File(['bottom'], 'bottom.jpg', { type: 'image/jpeg' }));
+  assert.equal(readProfileImage(data, 'cover').name, 'top.png');
+  assert.equal(readProfileImage(data, 'footer').name, 'bottom.jpg');
+  data.set('footer', new File(['bad'], 'bad.svg', { type: 'image/svg+xml' }));
+  assert.throws(() => readProfileImage(data, 'footer'), /Görseller/);
+  assert.equal(readProfileImage(data, 'cover').name, 'top.png');
+});
+
+test("create and edit persist separate banner URLs and preserve photo settings", async () => {
+  const writes = [];
+  const uploads = [];
+  const supabase = {
+    storage: { from: () => ({
+      upload: async (path, file) => { uploads.push({ path, name: file.name }); return { error: null }; },
+      getPublicUrl: (path) => ({ data: { publicUrl: `https://test.supabase.co/${path}` } }),
+    }) },
+    from: () => {
+      const query = {
+        insert: (value) => { writes.push(value); return query; },
+        update: (value) => { writes.push(value); return query; },
+        eq: () => query,
+        select: () => query,
+        single: async () => ({ data: writes.at(-1), error: null }),
+      };
+      return query;
+    },
+  };
+  const compiled = ts.transpileModule(fs.readFileSync(require.resolve('../lib/businesses.ts'), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+  });
+  const exports = {};
+  const mockRequire = (name) => {
+    if (name === 'next/headers') return { cookies: async () => ({}) };
+    if (name === '../utils/supabase/server') return { createClient: () => supabase };
+    throw new Error(`Unexpected dependency: ${name}`);
+  };
+  new Function('require', 'exports', compiled.outputText)(mockRequire, exports);
+  const top = new File(['top'], 'top.png', { type: 'image/png' });
+  const bottom = new File(['bottom'], 'bottom.png', { type: 'image/png' });
+  await exports.addBusiness({ slug: 'fixture', logo_url: '', design: { photo_zoom: 1.7 } }, null, top, bottom);
+  const created = writes[0];
+  assert.match(created.design.cover_url, /fixture-cover-/);
+  assert.match(created.design.footer_image_url, /fixture-footer-/);
+  assert.equal(created.design.photo_zoom, 1.7);
+  assert.deepEqual(uploads.map((item) => item.name), ['top.png', 'bottom.png']);
+  await exports.updateBusiness('fixture', { design: { ...created.design, cover_url: '' } });
+  assert.equal(writes[1].design.cover_url, '');
+  assert.equal(writes[1].design.footer_image_url, created.design.footer_image_url);
+  assert.equal(writes[1].design.photo_zoom, 1.7);
+});

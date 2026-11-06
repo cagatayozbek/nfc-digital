@@ -89,20 +89,6 @@ export function readProfileForm(form: FormData) {
       throw new Error("Kapak görselini yeniden yükleyin.");
     design.cover_url = raw.cover_url;
   }
-  const image = (key: string) => {
-    const file = form.get(key);
-    if (!(file instanceof File) || !file.size) return null;
-    if (
-      !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(
-        file.type,
-      ) ||
-      file.size > 5 * 1024 * 1024
-    )
-      throw new Error(
-        "Görseller JPG, PNG, WebP veya GIF ve en fazla 5 MB olmalı.",
-      );
-    return file;
-  };
   return {
     profile: {
       name,
@@ -113,7 +99,22 @@ export function readProfileForm(form: FormData) {
       links,
       design,
     },
-    logoFile: image("logo"),
-    coverFile: image("cover"),
+    logoFile: readProfileImage(form, "logo"),
+    coverFile: readProfileImage(form, "cover"),
   };
+}
+
+export function readProfileImage(form: FormData, key: string) {
+  const file = form.get(key);
+  if (!(file instanceof File) || !file.size) return null;
+  if (
+    !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(
+      file.type,
+    ) ||
+    file.size > 5 * 1024 * 1024
+  )
+    throw new Error(
+      "Görseller JPG, PNG, WebP veya GIF ve en fazla 5 MB olmalı.",
+    );
+  return file;
 }

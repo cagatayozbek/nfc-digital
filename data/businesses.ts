@@ -34,6 +34,7 @@ export interface BusinessProfile {
 export interface ProfileDesign {
   template: "personal" | "artist" | "business";
   cover_url: string;
+  footer_image_url: string;
   photo_size: number;
   photo_shape: "square" | "rounded" | "circle";
   photo_fit: "contain" | "cover";

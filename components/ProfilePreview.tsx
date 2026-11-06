@@ -1,12 +1,155 @@
 "use client";
 
-import { BusinessProfile as ProfileType } from "../data/businesses";
-import { BusinessProfile } from "./BusinessProfile";
+import React from "react";
+import {
+  BusinessProfile as ProfileType,
+  BusinessLink,
+} from "../data/businesses";
+import { DEFAULT_PHOTO, PhotoDesign } from "../lib/profile-photo";
+import { SocialIcon } from "./SocialIcon";
 
-type ProfilePreviewProps = Omit<ProfileType, "slug"> & { slug?: string };
+interface ProfilePreviewProps {
+  photo?: PhotoDesign;
+  cover_url?: string;
+  footer_image_url?: string;
+  name: string;
+  description: string;
+  logo_url: string;
+  primary_color: string;
+  background_color: string;
+  text_color: string;
+  links: { type: BusinessLink["type"]; label: string; url: string }[];
+}
 
-export function ProfilePreview(props: ProfilePreviewProps) {
+export function ProfilePreview({
+  photo = DEFAULT_PHOTO,
+  cover_url,
+  footer_image_url,
+  name,
+  description,
+  logo_url,
+  primary_color,
+  background_color,
+  text_color,
+  links,
+}: ProfilePreviewProps) {
   return (
-    <BusinessProfile profile={{ ...props, slug: props.slug || "" }} preview />
+    <div
+      className="w-full h-full overflow-y-auto flex flex-col items-center py-10 px-4 font-sans"
+      style={{ backgroundColor: background_color, color: text_color }}
+    >
+      {cover_url ? (
+        <img
+          src={cover_url}
+          alt="Üst banner"
+          className="w-full h-auto shrink-0 mb-5"
+        />
+      ) : (
+        <>
+          <div
+            className="shrink-0 overflow-hidden mb-5"
+            style={{
+              width: (photo.photo_size * 2) / 3,
+              height: (photo.photo_size * 2) / 3,
+              borderRadius:
+                photo.photo_shape === "circle"
+                  ? "50%"
+                  : photo.photo_shape === "rounded"
+                    ? 14
+                    : 0,
+            }}
+          >
+            {logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logo_url}
+                alt={name || "Logo"}
+                className="w-full h-full"
+                style={{
+                  objectFit: photo.photo_fit,
+                  objectPosition: `${photo.photo_x}% ${photo.photo_y}%`,
+                  transform: `scale(${photo.photo_zoom})`,
+                  transformOrigin: `${photo.photo_x}% ${photo.photo_y}%`,
+                }}
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center text-xs border"
+                style={{
+                  borderColor: text_color,
+                  color: text_color,
+                  opacity: 0.3,
+                }}
+              >
+                Logo
+              </div>
+            )}
+          </div>
+        </>
+      )}
+      {/* Name */}
+      <h2
+        className="text-lg font-bold text-center uppercase tracking-widest mb-2"
+        style={{ color: text_color }}
+      >
+        {name || "İşletme Adı"}
+      </h2>
+
+      {/* Description */}
+      <p
+        className="text-center text-xs mb-6 font-light tracking-wide px-2 leading-relaxed opacity-70"
+        style={{ color: text_color }}
+      >
+        {description || "Açıklama..."}
+      </p>
+
+      {/* Links */}
+      <div className="w-full mb-4">
+        {links.length === 0 && (
+          <p className="text-xs text-center opacity-30">
+            Linkler burada görünür
+          </p>
+        )}
+        {links.map((link, i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between w-full p-3 mb-2 border text-xs"
+            style={{ borderColor: text_color, color: text_color }}
+          >
+            <div className="flex items-center gap-2">
+              <SocialIcon type={link.type} className="w-3.5 h-3.5" />
+              <span className="font-medium uppercase tracking-wider">
+                {link.label || "(etiket)"}
+              </span>
+            </div>
+            <span>↗</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Save contact */}
+      <div
+        className="w-full py-3 text-center text-xs font-medium uppercase tracking-widest border"
+        style={{
+          backgroundColor: primary_color,
+          color: background_color,
+          borderColor: primary_color,
+        }}
+      >
+        Rehbere Kaydet
+      </div>
+
+      {footer_image_url && (
+        <img
+          src={footer_image_url}
+          alt="Alt görsel"
+          className="mt-5 w-full h-auto shrink-0"
+        />
+      )}
+      {/* Footer */}
+      <p className="mt-8 text-xs uppercase tracking-widest opacity-20">
+        NFC Digital
+      </p>
+    </div>
   );
 }
