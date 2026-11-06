@@ -3,6 +3,7 @@
 import { BusinessLink, ProfileDesign } from "../data/businesses";
 import { SocialIcon } from "./SocialIcon";
 import { readableText } from "../lib/profile-design";
+import { ArrowUpRight } from "lucide-react";
 
 interface LinkButtonProps {
   link: BusinessLink;
@@ -41,9 +42,7 @@ export function LinkButton({
           {link.label}
         </span>
       </span>
-      <span aria-hidden="true" className="shrink-0">
-        ↗
-      </span>
+      <ArrowUpRight aria-hidden="true" className="w-5 h-5 shrink-0" />
     </>
   );
   const className =

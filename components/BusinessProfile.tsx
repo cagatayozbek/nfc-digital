@@ -69,7 +69,8 @@ export function BusinessProfile({
   const links = visibleLinks(profile.links);
   return (
     <div
-      className={preview ? "min-h-full w-full" : "min-h-screen w-full"}
+      data-public-profile={preview ? undefined : "true"}
+      className={preview ? "min-h-full w-full" : "min-h-screen min-h-[100dvh] w-full"}
       style={{
         backgroundColor: profile.background_color,
         color: profile.text_color,
@@ -79,8 +80,8 @@ export function BusinessProfile({
       <div
         className="mx-auto w-full max-w-sm px-6 flex flex-col"
         style={{
-          paddingTop: gap * 2,
-          paddingBottom: gap * 2,
+          paddingTop: preview ? gap * 2 : `max(${gap * 2}px, env(safe-area-inset-top))`,
+          paddingBottom: preview ? gap * 2 : `max(${gap * 2}px, env(safe-area-inset-bottom))`,
           alignItems: design.alignment === "left" ? "flex-start" : "center",
           textAlign: design.alignment,
         }}

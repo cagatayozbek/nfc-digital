@@ -7,6 +7,7 @@ import {
 } from "../data/businesses";
 import { DEFAULT_PHOTO, PhotoDesign } from "../lib/profile-photo";
 import { SocialIcon } from "./SocialIcon";
+import { ArrowUpRight } from "lucide-react";
 
 interface ProfilePreviewProps {
   photo?: PhotoDesign;
@@ -124,7 +125,7 @@ export function ProfilePreview({
                 {link.label || "(etiket)"}
               </span>
             </div>
-            <span>↗</span>
+            <ArrowUpRight aria-hidden="true" className="w-3.5 h-3.5 shrink-0" />
           </div>
         ))}
       </div>
