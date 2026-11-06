@@ -10,12 +10,44 @@ interface QRModalProps {
 }
 
 export function QRModal({ slug, name, onClose }: QRModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [url, setUrl] = useState("");
 
   useEffect(() => {
     setUrl(`${window.location.origin}/${slug}`);
   }, [slug]);
+
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const dialog = dialogRef.current;
+    dialog?.querySelector<HTMLButtonElement>("button")?.focus();
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+      if (event.key === "Tab" && dialog) {
+        const buttons = Array.from(
+          dialog.querySelectorAll<HTMLButtonElement>("button"),
+        );
+        const first = buttons[0],
+          last = buttons[buttons.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      previous?.focus();
+    };
+  }, [onClose]);
 
   const downloadQR = () => {
     const canvas = canvasRef.current?.querySelector("canvas");
@@ -32,17 +64,26 @@ export function QRModal({ slug, name, onClose }: QRModalProps) {
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="qr-dialog-title"
         className="bg-white p-8 border border-black max-w-sm w-full mx-4 text-center"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
           <div className="text-left">
-            <h2 className="font-bold uppercase tracking-widest text-sm">
+            <h2
+              id="qr-dialog-title"
+              className="font-bold uppercase tracking-widest text-sm"
+            >
               {name}
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">/{slug}</p>
           </div>
           <button
+            type="button"
+            aria-label="QR kodunu kapat"
             onClick={onClose}
             className="text-lg text-gray-400 hover:text-black transition-colors"
           >

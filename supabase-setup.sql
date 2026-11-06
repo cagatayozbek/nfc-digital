@@ -15,6 +15,7 @@ create table if not exists businesses (
   background_color text not null default '#ffffff',
   text_color text not null default '#000000',
   links jsonb not null default '[]'::jsonb,
+  design jsonb not null default '{}'::jsonb,
   created_at timestamptz default now()
 );
 
@@ -130,3 +131,6 @@ create policy "Click events public insert"
 -- Herkese select (admin analytics için)
 create policy "Click events public select"
   on click_events for select using (true);
+
+-- Mevcut kurulumlar için görünüm ayarları
+alter table public.businesses add column if not exists design jsonb not null default '{}'::jsonb;

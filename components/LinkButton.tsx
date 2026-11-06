@@ -1,17 +1,16 @@
 "use client";
 
-import React from "react";
-import { BusinessLink } from "../data/businesses";
+import { BusinessLink, ProfileDesign } from "../data/businesses";
 import { SocialIcon } from "./SocialIcon";
-
-// Bu link tipleri yeni sekme açmadan çalışmalı
-const INLINE_TYPES = new Set(["phone", "email", "contact"]);
+import { readableText } from "../lib/profile-design";
 
 interface LinkButtonProps {
   link: BusinessLink;
   slug?: string;
   primaryColor?: string;
   textColor?: string;
+  design?: Partial<ProfileDesign>;
+  preview?: boolean;
 }
 
 export function LinkButton({
@@ -19,56 +18,65 @@ export function LinkButton({
   slug,
   primaryColor = "#000000",
   textColor = "#000000",
+  design,
+  preview,
 }: LinkButtonProps) {
-  const isInline = INLINE_TYPES.has(link.type);
-
-  const handleClick = () => {
-    if (!slug) return;
-    // Fire-and-forget
-    fetch("/api/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        slug,
-        link_type: link.type,
-        link_label: link.label,
-      }),
-    }).catch(() => {
-      /* ignore */
-    });
+  const filled = link.featured || design?.button_style === "solid";
+  const style = {
+    borderColor: filled ? primaryColor : textColor,
+    backgroundColor: filled ? primaryColor : "transparent",
+    color: filled ? readableText(primaryColor) : textColor,
+    borderRadius:
+      design?.button_shape === "pill"
+        ? 999
+        : design?.button_shape === "rounded"
+          ? 14
+          : 0,
   };
-
+  const content = (
+    <>
+      <span className="flex min-w-0 items-center gap-3">
+        <SocialIcon type={link.type} className="w-5 h-5 shrink-0" />
+        <span className="font-medium text-sm break-words [overflow-wrap:anywhere]">
+          {link.label}
+        </span>
+      </span>
+      <span aria-hidden="true" className="shrink-0">
+        ↗
+      </span>
+    </>
+  );
+  const className =
+    "flex items-center justify-between gap-3 w-full p-4 border transition-opacity hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4";
+  if (preview)
+    return (
+      <div className={className} style={style}>
+        {content}
+      </div>
+    );
+  const inline = ["phone", "email", "contact"].includes(link.type);
   return (
     <a
       href={link.url}
-      target={isInline ? "_self" : "_blank"}
-      rel={isInline ? undefined : "noopener noreferrer"}
-      className="group flex items-center justify-between w-full p-4 mb-3 border transition-colors duration-200"
-      style={{
-        borderColor: textColor,
-        color: textColor,
-      }}
-      onClick={handleClick}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLAnchorElement;
-        el.style.backgroundColor = primaryColor;
-        el.style.color = "#ffffff";
-        el.style.borderColor = primaryColor;
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLAnchorElement;
-        el.style.backgroundColor = "transparent";
-        el.style.color = textColor;
-        el.style.borderColor = textColor;
+      target={inline ? "_self" : "_blank"}
+      rel={inline ? undefined : "noopener noreferrer"}
+      className={className}
+      style={style}
+      onClick={() => {
+        if (slug)
+          fetch("/api/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              slug,
+              link_type: link.type,
+              link_label: link.label,
+            }),
+            keepalive: true,
+          }).catch(() => {});
       }}
     >
-      <div className="flex items-center gap-4">
-        <SocialIcon type={link.type} className="w-5 h-5" />
-        <span className="font-medium text-sm uppercase tracking-wider">
-          {link.label}
-        </span>
-      </div>
-      <span className="font-light">↗</span>
+      {content}
     </a>
   );
 }
