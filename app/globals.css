@@ -29,3 +29,21 @@ body {
     @apply block w-full min-w-0 text-xs text-slate-500 file:mr-2 file:rounded-lg file:border file:border-slate-200 file:bg-slate-50 file:px-3 file:py-2.5 file:text-xs file:font-medium;
   }
 }
+
+.profile-workspace {
+  background: #f4f5f0;
+}
+.profile-workspace .editor-section {
+  border-radius: 12px;
+  border-color: #d9ded4;
+}
+.profile-workspace .editor-button-primary {
+  background: #254a3c;
+  border-color: #254a3c;
+}
+.profile-workspace details.editor-section .editor-section {
+  padding: 1rem 0;
+  border: 0;
+  border-top: 1px solid #d9ded4;
+  border-radius: 0;
+}

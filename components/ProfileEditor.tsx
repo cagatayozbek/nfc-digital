@@ -44,7 +44,6 @@ import { ProfilePreview } from "./ProfilePreview";
 import { QRModal } from "./QRModal";
 
 type EditorLink = BusinessLink & { id: string };
-type Tab = "content" | "appearance" | "publish";
 const inputClass = "editor-input";
 const imageAccept = "image/jpeg,image/png,image/webp,image/gif";
 
@@ -111,9 +110,9 @@ function Action({
       aria-pressed={pressed}
       disabled={disabled}
       onClick={onClick}
-      className={`editor-icon ${pressed ? "bg-slate-900 text-white" : ""}`}
+      className={`editor-button text-xs ${pressed ? "border-emerald-700 text-emerald-800" : ""}`}
     >
-      {children}
+      {children} {label}
     </button>
   );
 }
@@ -168,7 +167,6 @@ export function ProfileEditor({
   initialProfile?: BusinessProfile;
 }) {
   const editing = !!initialProfile;
-  const [tab, setTab] = useState<Tab>("content");
   const [slug, setSlug] = useState(initialProfile?.slug || "");
   const slugTouched = useRef(editing);
   const [name, setName] = useState(initialProfile?.name || "");
@@ -236,10 +234,6 @@ export function ProfileEditor({
     };
   }, [slug, editing, retry]);
 
-  const changeTab = (next: Tab) => {
-    setTab(next);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
   const updateDesign = <K extends keyof ProfileDesign>(
     key: K,
     value: ProfileDesign[K],
@@ -319,7 +313,6 @@ export function ProfileEditor({
   const invalidLinks = links.filter(
     (link) => !link.label.trim() || !normalizeLink(link.type, link.url),
   );
-  const visibleCount = links.filter((link) => link.visible !== false).length;
   const lowContrast = contrastRatio(text, background) < 4.5;
   const profile: BusinessProfile = {
     slug,
@@ -336,22 +329,23 @@ export function ProfileEditor({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    setShowMobilePreview(false);
     setError("");
     if (!name.trim()) {
-      changeTab("content");
+      window.scrollTo({ top: 0 });
       setError("Profil adını girin.");
       return;
     }
     if (invalidLinks.length) {
-      changeTab("content");
+      window.scrollTo({ top: 0 });
       setError(
         "Bağlantıların başlıklarını ve adreslerini tamamlayın. Gizli bağlantılar da geçerli olmalı.",
       );
       return;
     }
-    if (!validSlug(slug)) {
-      changeTab("publish");
-      setError("Geçerli bir profil adresi girin.");
+    if (!editing && (!validSlug(slug) || currentSlugCheck?.available === false)) {
+      window.scrollTo({ top: 0 });
+      setError(currentSlugCheck?.message || "Geçerli bir profil adresi girin.");
       return;
     }
     setLoading(true);
@@ -375,6 +369,7 @@ export function ProfileEditor({
         : await addBusiness(form);
       setPublished(result.slug);
     } catch (err) {
+      window.scrollTo({ top: 0 });
       setError(
         err instanceof Error
           ? err.message
@@ -386,7 +381,7 @@ export function ProfileEditor({
   };
 
   const preview = (
-    <div className="sticky top-6 space-y-4">
+    <div className="sticky top-24 space-y-4">
       <div className="flex items-center justify-between text-sm text-slate-500">
         <span className="flex items-center gap-2">
           <Smartphone size={16} /> Canlı önizleme
@@ -398,9 +393,7 @@ export function ProfileEditor({
           <ProfilePreview {...profile} />
         </div>
       </div>
-      <p className="text-xs text-center text-slate-500">
-        Yayınlanan sayfayla aynı görünümü kullanır.
-      </p>
+      
     </div>
   );
 
@@ -467,9 +460,9 @@ export function ProfileEditor({
     );
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b bg-white px-5 py-5">
-        <div className="max-w-[1360px] mx-auto flex flex-wrap items-center justify-between gap-4">
+    <main className="profile-workspace min-h-screen text-slate-900">
+      <header className="sticky top-0 z-20 border-b bg-white px-4 py-3">
+        <div className="max-w-[1140px] mx-auto flex flex-wrap items-center gap-2 [&>div:first-child]:mr-auto">
           <div>
             <Link
               href="/arkaoda"
@@ -480,9 +473,6 @@ export function ProfileEditor({
             <h1 className="text-2xl font-semibold mt-2">
               {editing ? "Profili düzenle" : "Yeni profil oluştur"}
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              İçeriğini ekle, görünümünü seç, paylaş.
-            </p>
           </div>
           <button
             type="button"
@@ -492,35 +482,14 @@ export function ProfileEditor({
             <Eye size={16} />
             {showMobilePreview ? "Düzenleyiciye dön" : "Önizleme"}
           </button>
+          <button form="profile-form" disabled={loading} className="editor-button editor-button-primary">{loading ? "Kaydediliyor…" : editing ? "Kaydet" : "Profili yayınla"}</button>
         </div>
       </header>
-      <div className="max-w-[1360px] mx-auto grid lg:grid-cols-[minmax(0,1fr)_408px] gap-8 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-[1140px] mx-auto grid lg:grid-cols-[minmax(0,1fr)_408px] gap-8 p-4 sm:p-6 lg:p-8">
         <div
           className={`min-w-0 ${showMobilePreview ? "hidden lg:block" : ""}`}
         >
-          <nav
-            aria-label="Profil oluşturma adımları"
-            className="flex gap-1 p-1 bg-slate-200/60 rounded-xl mb-6"
-          >
-            {(
-              [
-                { id: "content", label: "İçerik" },
-                { id: "appearance", label: "Görünüm" },
-                { id: "publish", label: "Yayınla" },
-              ] as const
-            ).map((item, index) => (
-              <button
-                type="button"
-                key={item.id}
-                aria-current={tab === item.id ? "step" : undefined}
-                onClick={() => changeTab(item.id)}
-                className={`flex-1 px-2 py-3 text-sm rounded-lg ${tab === item.id ? "bg-white shadow-sm font-semibold" : "text-slate-600 hover:bg-white/50"}`}
-              >
-                {index + 1}. {item.label}
-              </button>
-            ))}
-          </nav>
-          <form onSubmit={submit} noValidate>
+          <form id="profile-form" onSubmit={submit} noValidate className="space-y-5">
             {error && (
               <div
                 role="alert"
@@ -529,10 +498,9 @@ export function ProfileEditor({
                 {error}
               </div>
             )}
-            <div className="space-y-5" hidden={tab !== "content"}>
+            <div className="space-y-5">
               <Section
                 title="Profil bilgileri"
-                description="Bir kişi, sanatçı veya işletme için kendi sayfanı oluştur."
               >
                 <Field label="Profil adı">
                   <input
@@ -551,8 +519,54 @@ export function ProfileEditor({
                   />
                 </Field>
                 <Field
-                  label="Açıklama"
-                  hint={`${description.length}/2000 karakter · İsteğe bağlı`}
+                  label="Profil adresi"
+                >
+                  <input
+                    className={inputClass}
+                    value={slug}
+                    readOnly={editing}
+                    maxLength={80}
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    onChange={(e) => {
+                      slugTouched.current = true;
+                      setSlug(normalizeSlug(e.target.value));
+                    }}
+                    placeholder="begum"
+                  />
+                </Field>
+                <p className="text-sm break-all text-slate-600">
+                  {origin || "Profil adresin"}/{slug || "profil-adin"}
+                </p>
+                {!editing && slug && (
+                  <div role="status" className="text-sm">
+                    <p
+                      className={
+                        currentSlugCheck?.available
+                          ? "text-emerald-700"
+                          : "text-slate-600"
+                      }
+                    >
+                      {!validSlug(slug)
+                        ? "Bu adres geçersiz veya ayrılmış. Farklı bir adres seçin."
+                        : currentSlugCheck?.message ||
+                          "Adres kontrol ediliyor…"}
+                    </p>
+                    {currentSlugCheck && !currentSlugCheck.available && (
+                      <button
+                        className="underline mt-2"
+                        type="button"
+                        onClick={() => {
+                          setSlugCheck(null);
+                          setRetry((r) => r + 1);
+                        }}
+                      >
+                        Yeniden kontrol et
+                      </button>
+                    )}
+                  </div>
+                )}
+                <Field label="Kısa açıklama (isteğe bağlı)"
                 >
                   <textarea
                     className={inputClass}
@@ -604,12 +618,11 @@ export function ProfileEditor({
               </Section>
               <Section
                 title="Bağlantılar"
-                description="Sürükleyerek veya oklarla sırala. Yıldız ile bir bağlantıyı öne çıkar."
+
               >
                 {links.length === 0 && (
                   <div className="border border-dashed rounded-xl p-6 text-center text-sm text-slate-500">
-                    İlk bağlantını ekle. Sosyal hesaplarını, biletlerini veya
-                    web siteni paylaş.
+                    Henüz bağlantı yok.
                   </div>
                 )}
                 <div className="space-y-4">
@@ -655,11 +668,11 @@ export function ProfileEditor({
                               <GripVertical size={18} />
                             </span>
                             <span className="text-sm font-medium">
-                              Bağlantı {index + 1}
+                              {link.label || `Bağlantı ${index + 1}`}
                               {link.visible === false ? " · Gizli" : ""}
                             </span>
                           </div>
-                          <div className="flex gap-1">
+                          <details className="w-full"><summary className="cursor-pointer text-sm">Bağlantı işlemleri</summary><div className="mt-2 flex flex-wrap gap-1">
                             <Action
                               label="Yukarı taşı"
                               disabled={index === 0}
@@ -731,7 +744,7 @@ export function ProfileEditor({
                             >
                               <Trash2 size={16} />
                             </Action>
-                          </div>
+                          </div></details>
                         </div>
                         <div className="grid sm:grid-cols-2 gap-3">
                           <Field label="Bağlantı türü">
@@ -795,7 +808,7 @@ export function ProfileEditor({
                               updateLink(link.id, { url: e.target.value })
                             }
                           />
-                          {link.url && (
+                          {link.url && !normalized && (
                             <span
                               className={`block text-xs mt-2 break-all ${normalized ? "text-slate-500" : "text-red-700"}`}
                             >
@@ -842,10 +855,12 @@ export function ProfileEditor({
                 )}
               </Section>
             </div>
-            <div className="space-y-5" hidden={tab !== "appearance"}>
+            <details className="editor-section">
+              <summary className="cursor-pointer font-semibold">Görünüm ayarları</summary>
+              <div className="space-y-5 mt-5">
               <Section
-                title="Bir başlangıç seç"
-                description="Şablonlar renk ve görünüm ayarlarını değiştirir. İçeriğin korunur."
+                title="Şablon"
+
               >
                 <div className="grid sm:grid-cols-3 gap-3">
                   {TEMPLATES.map((t) => (
@@ -918,7 +933,7 @@ export function ProfileEditor({
               </Section>
               <Section
                 title="Fotoğraf görünümü"
-                description="Kadraj ve yakınlaştırma ayarlarını canlı önizlemede takip et."
+
               >
                 <Range
                   label="Fotoğraf boyutu"
@@ -1086,137 +1101,7 @@ export function ProfileEditor({
                 </div>
               </Section>
             </div>
-            <div className="space-y-5" hidden={tab !== "publish"}>
-              <Section
-                title="Profil adresi"
-                description={
-                  editing
-                    ? "Mevcut profilinin adresi korunur."
-                    : "Paylaşacağın kısa ve akılda kalıcı adresi seç."
-                }
-              >
-                <Field
-                  label="Adres"
-                  hint="Küçük harf, rakam ve aralarda tire kullanabilirsin."
-                >
-                  <input
-                    className={inputClass}
-                    value={slug}
-                    readOnly={editing}
-                    maxLength={80}
-                    autoCapitalize="none"
-                    spellCheck={false}
-                    onChange={(e) => {
-                      slugTouched.current = true;
-                      setSlug(normalizeSlug(e.target.value));
-                    }}
-                    placeholder="begum"
-                  />
-                </Field>
-                <p className="text-sm break-all text-slate-600">
-                  {origin || "Profil adresin"}/{slug || "profil-adin"}
-                </p>
-                {!editing && slug && (
-                  <div role="status" className="text-sm">
-                    <p
-                      className={
-                        currentSlugCheck?.available
-                          ? "text-emerald-700"
-                          : "text-slate-600"
-                      }
-                    >
-                      {!validSlug(slug)
-                        ? "Bu adres geçersiz veya ayrılmış. Farklı bir adres seçin."
-                        : currentSlugCheck?.message ||
-                          "Adres kontrol ediliyor…"}
-                    </p>
-                    {currentSlugCheck && !currentSlugCheck.available && (
-                      <button
-                        className="underline mt-2"
-                        type="button"
-                        onClick={() => {
-                          setSlugCheck(null);
-                          setRetry((r) => r + 1);
-                        }}
-                      >
-                        Yeniden kontrol et
-                      </button>
-                    )}
-                  </div>
-                )}
-              </Section>
-              <Section title="Yayın öncesi kontrol">
-                <ul className="text-sm space-y-3">
-                  <li>
-                    {name.trim() ? "✓" : "•"} Profil adı:{" "}
-                    {name || "Henüz eklenmedi"}
-                  </li>
-                  <li>
-                    {invalidLinks.length ? "•" : "✓"} {visibleCount} görünür,{" "}
-                    {links.length - visibleCount} gizli bağlantı
-                    {invalidLinks.length > 0
-                      ? ` · ${invalidLinks.length} bağlantı tamamlanmalı`
-                      : ""}
-                  </li>
-                  <li>
-                    ✓ Rehber düğmesi {design.show_contact ? "açık" : "kapalı"}
-                  </li>
-                  <li>
-                    {lowContrast
-                      ? "• Metin kontrastını gözden geçir."
-                      : "✓ Metin kontrastı uygun."}
-                  </li>
-                </ul>
-                <p className="text-sm text-slate-500">
-                  {editing
-                    ? "Kaydettiğinde mevcut profilin güncellenir."
-                    : "Yayınladığında profilin bu adresten herkes tarafından görüntülenebilir."}{" "}
-                  Ardından bağlantıyı kopyalayabilir ve QR kodunu
-                  indirebilirsin.
-                </p>
-              </Section>
-            </div>
-            <div className="flex justify-between gap-3 mt-6 py-4">
-              <button
-                type="button"
-                className="editor-button"
-                disabled={tab === "content" || loading}
-                onClick={() =>
-                  changeTab(tab === "publish" ? "appearance" : "content")
-                }
-              >
-                Geri
-              </button>
-              {tab === "publish" ? (
-                <button
-                  key="publish"
-                  type="submit"
-                  disabled={
-                    loading ||
-                    !validSlug(slug) ||
-                    (!editing && currentSlugCheck?.available === false)
-                  }
-                  className="editor-button editor-button-primary"
-                >
-                  {loading
-                    ? "Kaydediliyor…"
-                    : editing
-                      ? "Değişiklikleri yayınla"
-                      : "Profili yayınla"}
-                </button>
-              ) : (
-                <button
-                  key="continue"
-                  type="button"
-                  className="editor-button editor-button-primary"
-                  onClick={() =>
-                    changeTab(tab === "content" ? "appearance" : "publish")
-                  }
-                >
-                  {tab === "content" ? "Görünümü düzenle" : "Yayına hazırla"} →
-                </button>
-              )}
-            </div>
+            </details>
           </form>
         </div>
         <aside
